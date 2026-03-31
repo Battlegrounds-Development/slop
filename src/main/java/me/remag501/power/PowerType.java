@@ -1,9 +1,6 @@
 package me.remag501.power;
 
-import me.remag501.power.ability.Ability;
-import me.remag501.power.ability.DashAbility;
-import me.remag501.power.ability.ShockwaveAbility;
-import me.remag501.power.ability.SkyLaunchAbility;
+import me.remag501.power.ability.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +11,11 @@ public enum PowerType {
     SPEEDSTER(
             "Speedster",
             "Move very quickly.",
-            List.of(new DashAbility()),
+            List.of(
+                    new DashAbility(),
+                    new SprintAbility(),
+                    new BlinkAbility()
+            ),
             List.of(
                     new EffectSpec("SPEED", 1),
                     new EffectSpec("HASTE", 0)
@@ -23,7 +24,11 @@ public enum PowerType {
     TITAN(
             "Titan",
             "Hit harder and take less damage.",
-            List.of(new ShockwaveAbility()),
+            List.of(
+                    new ShockwaveAbility(),
+                    new GroundSlamAbility(),
+                    new FortressAbility()
+            ),
             List.of(
                     new EffectSpec("STRENGTH", 0),
                     new EffectSpec("RESISTANCE", 0)
@@ -32,7 +37,11 @@ public enum PowerType {
     SKYBOUND(
             "Skybound",
             "Jump higher and fall safely.",
-            List.of(new SkyLaunchAbility()),
+            List.of(
+                    new SkyLaunchAbility(),
+                    new GlideAbility(),
+                    new UpdraftAbility()
+            ),
             List.of(
                     new EffectSpec("JUMP_BOOST", 1),
                     new EffectSpec("SLOW_FALLING", 0)
