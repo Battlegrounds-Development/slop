@@ -73,16 +73,22 @@ public class PowerSelectionMenu {
 
         boolean selected = current.map(type::equals).orElse(false);
         meta.setDisplayName(ChatColor.AQUA + type.getDisplayName());
-        meta.setLore(List.of(
-                ChatColor.GRAY + type.getDescription(),
-                ChatColor.LIGHT_PURPLE + "Ability: " + ChatColor.AQUA + type.getAbilityName(),
-                ChatColor.GRAY + type.getAbilityDescription(),
-                ChatColor.GRAY + "Cooldown: " + type.getAbilityCooldownSeconds() + "s",
-                "",
-                selected ? ChatColor.GREEN + "Currently selected" : ChatColor.YELLOW + "Click to select"
-        ));
 
+        List<String> lore = new java.util.ArrayList<>();
+        lore.add(ChatColor.GRAY + type.getDescription());
+        lore.add(""); // Blank line
 
+        // Add all abilities
+        for (var ability : type.getAbilities()) {
+            lore.add(ChatColor.LIGHT_PURPLE + "Ability: " + ChatColor.AQUA + ability.getDisplayName());
+            lore.add(ChatColor.GRAY + "  " + ability.getDescription());
+            lore.add(ChatColor.GRAY + "  Cooldown: " + ability.getCooldownSeconds() + "s");
+        }
+
+        lore.add("");
+        lore.add(selected ? ChatColor.GREEN + "Currently selected" : ChatColor.YELLOW + "Click to select");
+
+        meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
     }

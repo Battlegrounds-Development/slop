@@ -1,5 +1,10 @@
 package me.remag501.power;
 
+import me.remag501.power.ability.Ability;
+import me.remag501.power.ability.DashAbility;
+import me.remag501.power.ability.ShockwaveAbility;
+import me.remag501.power.ability.SkyLaunchAbility;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -9,9 +14,7 @@ public enum PowerType {
     SPEEDSTER(
             "Speedster",
             "Move very quickly.",
-            "Dash",
-            "Sneak + right-click with an empty hand to surge forward.",
-            8,
+            List.of(new DashAbility()),
             List.of(
                     new EffectSpec("SPEED", 1),
                     new EffectSpec("HASTE", 0)
@@ -20,9 +23,7 @@ public enum PowerType {
     TITAN(
             "Titan",
             "Hit harder and take less damage.",
-            "Shockwave",
-            "Sneak + right-click with an empty hand to knock nearby enemies away.",
-            14,
+            List.of(new ShockwaveAbility()),
             List.of(
                     new EffectSpec("STRENGTH", 0),
                     new EffectSpec("RESISTANCE", 0)
@@ -31,9 +32,7 @@ public enum PowerType {
     SKYBOUND(
             "Skybound",
             "Jump higher and fall safely.",
-            "Sky Launch",
-            "Sneak + right-click with an empty hand to launch upward.",
-            10,
+            List.of(new SkyLaunchAbility()),
             List.of(
                     new EffectSpec("JUMP_BOOST", 1),
                     new EffectSpec("SLOW_FALLING", 0)
@@ -42,17 +41,13 @@ public enum PowerType {
 
     private final String displayName;
     private final String description;
-    private final String abilityName;
-    private final String abilityDescription;
-    private final int abilityCooldownSeconds;
+    private final List<Ability> abilities;
     private final List<EffectSpec> effects;
 
-    PowerType(String displayName, String description, String abilityName, String abilityDescription, int abilityCooldownSeconds, List<EffectSpec> effects) {
+    PowerType(String displayName, String description, List<Ability> abilities, List<EffectSpec> effects) {
         this.displayName = displayName;
         this.description = description;
-        this.abilityName = abilityName;
-        this.abilityDescription = abilityDescription;
-        this.abilityCooldownSeconds = abilityCooldownSeconds;
+        this.abilities = abilities;
         this.effects = effects;
     }
 
@@ -64,16 +59,8 @@ public enum PowerType {
         return description;
     }
 
-    public String getAbilityName() {
-        return abilityName;
-    }
-
-    public String getAbilityDescription() {
-        return abilityDescription;
-    }
-
-    public int getAbilityCooldownSeconds() {
-        return abilityCooldownSeconds;
+    public List<Ability> getAbilities() {
+        return abilities;
     }
 
     public List<EffectSpec> getEffects() {

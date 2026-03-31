@@ -65,8 +65,10 @@ public class PowerCommand implements CommandExecutor, TabCompleter {
                     PowerType type = current.get();
                     player.sendMessage(ChatColor.GREEN + "Current power: " + ChatColor.AQUA + type.getDisplayName());
                     player.sendMessage(ChatColor.GRAY + type.getDescription());
-                    player.sendMessage(ChatColor.LIGHT_PURPLE + "Ability: " + ChatColor.AQUA + type.getAbilityName() + ChatColor.GRAY + " (" + type.getAbilityCooldownSeconds() + "s cooldown)");
-                    player.sendMessage(ChatColor.GRAY + type.getAbilityDescription());
+                    for (var ability : type.getAbilities()) {
+                        player.sendMessage(ChatColor.LIGHT_PURPLE + "Ability: " + ChatColor.AQUA + ability.getDisplayName() + ChatColor.GRAY + " (" + ability.getCooldownSeconds() + "s cooldown)");
+                        player.sendMessage(ChatColor.GRAY + "  " + ability.getDescription());
+                    }
                 }
                 return true;
             }
@@ -75,7 +77,7 @@ public class PowerCommand implements CommandExecutor, TabCompleter {
                 switch (result.status()) {
                     case NO_POWER -> player.sendMessage(ChatColor.YELLOW + "Choose a power first with /" + label + ".");
                     case COOLDOWN -> player.sendMessage(ChatColor.RED + "Ability cooldown: " + result.remainingSeconds() + "s");
-                    case SUCCESS -> player.sendMessage(ChatColor.AQUA + result.powerType().getAbilityName() + ChatColor.GREEN + " activated!");
+                    case SUCCESS -> player.sendMessage(ChatColor.AQUA + result.ability().getDisplayName() + ChatColor.GREEN + " activated!");
                 }
                 return true;
             }

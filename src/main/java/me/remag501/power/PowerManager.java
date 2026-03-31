@@ -1,13 +1,11 @@
 package me.remag501.power;
 
+import me.remag501.power.ability.Ability;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,6 +87,10 @@ public class PowerManager {
         return builder.toString();
     }
 
+    /**
+     * Triggers an ability for a player. If they have multiple abilities,
+     * this will trigger the first available ability that's off cooldown.
+     */
     public AbilityTriggerResult triggerAbility(Player player) {
         Optional<PowerType> powerType = getPower(player.getUniqueId());
         if (powerType.isEmpty()) {
@@ -96,44 +98,25 @@ public class PowerManager {
         }
 
         PowerType selected = powerType.get();
+        UUID playerId = player.getUniqueId();
         long now = System.currentTimeMillis();
-        long remaining = cooldownTracker.getRemainingMillis(player.getUniqueId(), now);
-        if (remaining > 0) {
-            long remainingSeconds = Math.max(1L, (remaining + 999L) / 1000L);
-            return AbilityTriggerResult.cooldown(selected, (int) remainingSeconds);
-        }
 
-        activateAbility(player, selected);
-        cooldownTracker.markUsed(player.getUniqueId(), now, selected.getAbilityCooldownSeconds());
-        return AbilityTriggerResult.success(selected);
-    }
-
-    private void activateAbility(Player player, PowerType selected) {
-        switch (selected) {
-            case SPEEDSTER -> {
-                Vector dash = player.getLocation().getDirection().normalize().multiply(1.45);
-                dash.setY(Math.max(0.24, dash.getY()));
-                player.setVelocity(dash);
-            }
-            case TITAN -> {
-                for (Entity nearby : player.getNearbyEntities(4.0, 2.0, 4.0)) {
-                    if (!(nearby instanceof LivingEntity target) || nearby.equals(player)) {
-                        continue;
-                    }
-
-                    Vector knock = target.getLocation().toVector().subtract(player.getLocation().toVector()).normalize().multiply(1.2);
-                    knock.setY(0.45);
-                    target.setVelocity(knock);
-                    target.damage(4.0, player);
-                }
-            }
-            case SKYBOUND -> {
-                Vector launch = player.getVelocity();
-                launch.setY(1.05);
-                player.setVelocity(launch);
-                player.setFallDistance(0.0F);
+        // Try to trigger the first available ability
+        for (Ability ability : selected.getAbilities()) {
+            long remaining = cooldownTracker.getRemainingMillis(playerId, ability.getId(), now);
+            if (remaining <= 0) {
+                // Ability is off cooldown, activate it
+                ability.activate(player);
+                cooldownTracker.markUsed(playerId, ability.getId(), now, ability.getCooldownSeconds());
+                return AbilityTriggerResult.success(selected, ability);
             }
         }
+
+        // All abilities are on cooldown, return the one with shortest remaining cooldown
+        Ability firstAbility = selected.getAbilities().get(0);
+        long remaining = cooldownTracker.getRemainingMillis(playerId, firstAbility.getId(), now);
+        long remainingSeconds = Math.max(1L, (remaining + 999L) / 1000L);
+        return AbilityTriggerResult.cooldown(selected, firstAbility, (int) remainingSeconds);
     }
 
     private void applyPower(Player player, PowerType powerType) {
@@ -180,17 +163,17 @@ public class PowerManager {
         return PotionEffectType.getByName(effectKey.toUpperCase(Locale.ROOT));
     }
 
-    public record AbilityTriggerResult(Status status, PowerType powerType, int remainingSeconds) {
+    public record AbilityTriggerResult(Status status, PowerType powerType, Ability ability, int remainingSeconds) {
         public static AbilityTriggerResult noPower() {
-            return new AbilityTriggerResult(Status.NO_POWER, null, 0);
+            return new AbilityTriggerResult(Status.NO_POWER, null, null, 0);
         }
 
-        public static AbilityTriggerResult cooldown(PowerType powerType, int remainingSeconds) {
-            return new AbilityTriggerResult(Status.COOLDOWN, powerType, remainingSeconds);
+        public static AbilityTriggerResult cooldown(PowerType powerType, Ability ability, int remainingSeconds) {
+            return new AbilityTriggerResult(Status.COOLDOWN, powerType, ability, remainingSeconds);
         }
 
-        public static AbilityTriggerResult success(PowerType powerType) {
-            return new AbilityTriggerResult(Status.SUCCESS, powerType, 0);
+        public static AbilityTriggerResult success(PowerType powerType, Ability ability) {
+            return new AbilityTriggerResult(Status.SUCCESS, powerType, ability, 0);
         }
     }
 

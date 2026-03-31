@@ -30,7 +30,7 @@ class PowerTypeTest {
 
 	@Test
 	void exposesAbilityMetadata() {
-		assertEquals("Dash", PowerType.SPEEDSTER.getAbilityName());
-		assertEquals(8, PowerType.SPEEDSTER.getAbilityCooldownSeconds());
+		assertEquals("Dash", PowerType.SPEEDSTER.getAbilities().get(0).getDisplayName());
+		assertEquals(8, PowerType.SPEEDSTER.getAbilities().get(0).getCooldownSeconds());
 	}
 }

@@ -60,7 +60,7 @@ public class PowerListener implements Listener {
         PowerManager.AbilityTriggerResult result = powerManager.triggerAbility(player);
         switch (result.status()) {
             case SUCCESS -> {
-                player.sendMessage(ChatColor.AQUA + result.powerType().getAbilityName() + ChatColor.GREEN + " activated!");
+                player.sendMessage(ChatColor.AQUA + result.ability().getDisplayName() + ChatColor.GREEN + " activated!");
                 event.setCancelled(true);
             }
             case COOLDOWN -> player.sendMessage(ChatColor.RED + "Ability cooldown: " + result.remainingSeconds() + "s");
