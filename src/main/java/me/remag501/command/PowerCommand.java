@@ -1,5 +1,6 @@
 package me.remag501.command;
 
+import me.remag501.gui.PowerSelectionMenu;
 import me.remag501.power.PowerManager;
 import me.remag501.power.PowerType;
 import org.bukkit.ChatColor;
@@ -17,9 +18,11 @@ import java.util.Optional;
 public class PowerCommand implements CommandExecutor, TabCompleter {
 
     private final PowerManager powerManager;
+    private final PowerSelectionMenu powerSelectionMenu;
 
-    public PowerCommand(PowerManager powerManager) {
+    public PowerCommand(PowerManager powerManager, PowerSelectionMenu powerSelectionMenu) {
         this.powerManager = powerManager;
+        this.powerSelectionMenu = powerSelectionMenu;
     }
 
     @Override
@@ -34,7 +37,12 @@ public class PowerCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
+        if (args.length == 0) {
+            powerSelectionMenu.openFor(player);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("help")) {
             sendHelp(player, label);
             return true;
         }
@@ -45,6 +53,10 @@ public class PowerCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(ChatColor.AQUA + "Available powers: " + ChatColor.WHITE + powerManager.listPowerKeys());
                 return true;
             }
+            case "gui", "open" -> {
+                powerSelectionMenu.openFor(player);
+                return true;
+            }
             case "info" -> {
                 Optional<PowerType> current = powerManager.getPower(player.getUniqueId());
                 if (current.isEmpty()) {
@@ -53,6 +65,17 @@ public class PowerCommand implements CommandExecutor, TabCompleter {
                     PowerType type = current.get();
                     player.sendMessage(ChatColor.GREEN + "Current power: " + ChatColor.AQUA + type.getDisplayName());
                     player.sendMessage(ChatColor.GRAY + type.getDescription());
+                    player.sendMessage(ChatColor.LIGHT_PURPLE + "Ability: " + ChatColor.AQUA + type.getAbilityName() + ChatColor.GRAY + " (" + type.getAbilityCooldownSeconds() + "s cooldown)");
+                    player.sendMessage(ChatColor.GRAY + type.getAbilityDescription());
+                }
+                return true;
+            }
+            case "ability", "cast" -> {
+                PowerManager.AbilityTriggerResult result = powerManager.triggerAbility(player);
+                switch (result.status()) {
+                    case NO_POWER -> player.sendMessage(ChatColor.YELLOW + "Choose a power first with /" + label + ".");
+                    case COOLDOWN -> player.sendMessage(ChatColor.RED + "Ability cooldown: " + result.remainingSeconds() + "s");
+                    case SUCCESS -> player.sendMessage(ChatColor.AQUA + result.powerType().getAbilityName() + ChatColor.GREEN + " activated!");
                 }
                 return true;
             }
@@ -87,7 +110,7 @@ public class PowerCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filterByPrefix(List.of("help", "list", "info", "choose", "set", "clear"), args[0]);
+            return filterByPrefix(List.of("help", "gui", "open", "list", "info", "ability", "cast", "choose", "set", "clear"), args[0]);
         }
 
         if (args.length == 2 && (args[0].equalsIgnoreCase("choose") || args[0].equalsIgnoreCase("set"))) {
@@ -114,8 +137,12 @@ public class PowerCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(Player player, String label) {
         player.sendMessage(ChatColor.GOLD + "Superpower commands:");
+        player.sendMessage(ChatColor.YELLOW + "/" + label + ChatColor.GRAY + " - open power selector");
+        player.sendMessage(ChatColor.YELLOW + "/" + label + " gui" + ChatColor.GRAY + " - open power selector");
         player.sendMessage(ChatColor.YELLOW + "/" + label + " list" + ChatColor.GRAY + " - show powers");
         player.sendMessage(ChatColor.YELLOW + "/" + label + " info" + ChatColor.GRAY + " - show your power");
+        player.sendMessage(ChatColor.YELLOW + "/" + label + " ability" + ChatColor.GRAY + " - activate your power ability");
+        player.sendMessage(ChatColor.GRAY + "Tip: Sneak + right-click with an empty hand to proc abilities quickly.");
         player.sendMessage(ChatColor.YELLOW + "/" + label + " choose <power>" + ChatColor.GRAY + " - pick a power");
         player.sendMessage(ChatColor.YELLOW + "/" + label + " clear" + ChatColor.GRAY + " - remove your power");
     }

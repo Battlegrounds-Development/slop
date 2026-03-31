@@ -1,10 +1,13 @@
 package me.remag501.power;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +24,7 @@ public class PowerManager {
 
     private final JavaPlugin plugin;
     private final Map<UUID, PowerType> powersByPlayer = new HashMap<>();
+    private final AbilityCooldownTracker cooldownTracker = new AbilityCooldownTracker();
 
     public PowerManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -63,6 +67,7 @@ public class PowerManager {
 
     public void clearPower(Player player) {
         powersByPlayer.remove(player.getUniqueId());
+        cooldownTracker.clear(player.getUniqueId());
         clearPowerEffects(player);
         save();
     }
@@ -82,6 +87,53 @@ public class PowerManager {
             builder.append(type.getKey());
         }
         return builder.toString();
+    }
+
+    public AbilityTriggerResult triggerAbility(Player player) {
+        Optional<PowerType> powerType = getPower(player.getUniqueId());
+        if (powerType.isEmpty()) {
+            return AbilityTriggerResult.noPower();
+        }
+
+        PowerType selected = powerType.get();
+        long now = System.currentTimeMillis();
+        long remaining = cooldownTracker.getRemainingMillis(player.getUniqueId(), now);
+        if (remaining > 0) {
+            long remainingSeconds = Math.max(1L, (remaining + 999L) / 1000L);
+            return AbilityTriggerResult.cooldown(selected, (int) remainingSeconds);
+        }
+
+        activateAbility(player, selected);
+        cooldownTracker.markUsed(player.getUniqueId(), now, selected.getAbilityCooldownSeconds());
+        return AbilityTriggerResult.success(selected);
+    }
+
+    private void activateAbility(Player player, PowerType selected) {
+        switch (selected) {
+            case SPEEDSTER -> {
+                Vector dash = player.getLocation().getDirection().normalize().multiply(1.45);
+                dash.setY(Math.max(0.24, dash.getY()));
+                player.setVelocity(dash);
+            }
+            case TITAN -> {
+                for (Entity nearby : player.getNearbyEntities(4.0, 2.0, 4.0)) {
+                    if (!(nearby instanceof LivingEntity target) || nearby.equals(player)) {
+                        continue;
+                    }
+
+                    Vector knock = target.getLocation().toVector().subtract(player.getLocation().toVector()).normalize().multiply(1.2);
+                    knock.setY(0.45);
+                    target.setVelocity(knock);
+                    target.damage(4.0, player);
+                }
+            }
+            case SKYBOUND -> {
+                Vector launch = player.getVelocity();
+                launch.setY(1.05);
+                player.setVelocity(launch);
+                player.setFallDistance(0.0F);
+            }
+        }
     }
 
     private void applyPower(Player player, PowerType powerType) {
@@ -112,15 +164,40 @@ public class PowerManager {
             return null;
         }
 
-        return switch (effectKey.toUpperCase(Locale.ROOT)) {
-            case "SPEED" -> PotionEffectType.SPEED;
-            case "HASTE" -> PotionEffectType.HASTE;
-            case "STRENGTH" -> PotionEffectType.STRENGTH;
-            case "RESISTANCE" -> PotionEffectType.RESISTANCE;
-            case "JUMP_BOOST" -> PotionEffectType.JUMP_BOOST;
-            case "SLOW_FALLING" -> PotionEffectType.SLOW_FALLING;
-            default -> null;
+        String canonical = switch (effectKey.toUpperCase(Locale.ROOT)) {
+            case "HASTE", "FAST_DIGGING" -> "HASTE";
+            case "STRENGTH", "INCREASE_DAMAGE" -> "STRENGTH";
+            case "RESISTANCE", "DAMAGE_RESISTANCE" -> "RESISTANCE";
+            case "JUMP_BOOST", "JUMP" -> "JUMP_BOOST";
+            default -> effectKey.toUpperCase(Locale.ROOT);
         };
+
+        PotionEffectType type = PotionEffectType.getByName(canonical);
+        if (type != null) {
+            return type;
+        }
+
+        return PotionEffectType.getByName(effectKey.toUpperCase(Locale.ROOT));
+    }
+
+    public record AbilityTriggerResult(Status status, PowerType powerType, int remainingSeconds) {
+        public static AbilityTriggerResult noPower() {
+            return new AbilityTriggerResult(Status.NO_POWER, null, 0);
+        }
+
+        public static AbilityTriggerResult cooldown(PowerType powerType, int remainingSeconds) {
+            return new AbilityTriggerResult(Status.COOLDOWN, powerType, remainingSeconds);
+        }
+
+        public static AbilityTriggerResult success(PowerType powerType) {
+            return new AbilityTriggerResult(Status.SUCCESS, powerType, 0);
+        }
+    }
+
+    public enum Status {
+        NO_POWER,
+        COOLDOWN,
+        SUCCESS
     }
 }
 
