@@ -2,3 +2,12 @@ name: slop
 version: '1.0-SNAPSHOT'
 main: me.remag501.slop
 api-version: '1.21'
+commands:
+  power:
+	description: Choose and inspect your superpower.
+	usage: /power <list|info|choose|clear>
+	aliases: [powers, superpower]
+permissions:
+  slop.power.use:
+	description: Allows players to use /power commands.
+	default: true

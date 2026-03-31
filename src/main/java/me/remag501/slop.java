@@ -1,17 +1,37 @@
 package me.remag501;
 
+import me.remag501.command.PowerCommand;
+import me.remag501.listener.PowerListener;
+import me.remag501.power.PowerManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class slop extends JavaPlugin {
 
+    private PowerManager powerManager;
+
     @Override
     public void onEnable() {
-        // Plugin startup logic
+        saveDefaultConfig();
+        this.powerManager = new PowerManager(this);
+        this.powerManager.load();
 
+        if (getCommand("power") != null) {
+            PowerCommand powerCommand = new PowerCommand(this.powerManager);
+            getCommand("power").setExecutor(powerCommand);
+            getCommand("power").setTabCompleter(powerCommand);
+        } else {
+            getLogger().severe("Command 'power' is missing from plugin.yml");
+        }
+
+        getServer().getPluginManager().registerEvents(new PowerListener(this.powerManager), this);
+        getLogger().info("slop enabled: superpowers are ready.");
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        if (this.powerManager != null) {
+            this.powerManager.save();
+        }
+        getLogger().info("slop disabled: powers saved.");
     }
 }
