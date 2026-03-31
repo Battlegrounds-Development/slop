@@ -3,6 +3,7 @@ package me.remag501;
 import me.remag501.command.PowerCommand;
 import me.remag501.gui.PowerSelectionMenu;
 import me.remag501.listener.PowerListener;
+import me.remag501.listener.AbilityHotbarListener;
 import me.remag501.power.PowerManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,6 +27,7 @@ public final class slop extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new PowerListener(this.powerManager, powerSelectionMenu), this);
+        getServer().getPluginManager().registerEvents(new AbilityHotbarListener(this.powerManager), this);
         getLogger().info("slop enabled: superpowers are ready.");
     }
 

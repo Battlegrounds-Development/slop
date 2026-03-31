@@ -1,6 +1,7 @@
 package me.remag501.power;
 
 import me.remag501.power.ability.Ability;
+import me.remag501.power.ability.AbilityBinding;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,6 +23,7 @@ public class PowerManager {
 
     private final JavaPlugin plugin;
     private final Map<UUID, PowerType> powersByPlayer = new HashMap<>();
+    private final Map<UUID, Map<Integer, Ability>> abilityBindings = new HashMap<>(); // playerId -> (hotbarSlot -> ability)
     private final AbilityCooldownTracker cooldownTracker = new AbilityCooldownTracker();
 
     public PowerManager(JavaPlugin plugin) {
@@ -65,6 +67,7 @@ public class PowerManager {
 
     public void clearPower(Player player) {
         powersByPlayer.remove(player.getUniqueId());
+        abilityBindings.remove(player.getUniqueId());
         cooldownTracker.clear(player.getUniqueId());
         clearPowerEffects(player);
         save();
@@ -88,8 +91,76 @@ public class PowerManager {
     }
 
     /**
+     * Binds an ability to a hotbar slot for a player.
+     */
+    public void bindAbility(Player player, Ability ability, int hotbarSlot) {
+        if (hotbarSlot < 0 || hotbarSlot > 8) {
+            throw new IllegalArgumentException("Hotbar slot must be 0-8");
+        }
+        abilityBindings
+                .computeIfAbsent(player.getUniqueId(), k -> new HashMap<>())
+                .put(hotbarSlot, ability);
+    }
+
+    /**
+     * Unbinds an ability from a hotbar slot.
+     */
+    public void unbindAbility(Player player, int hotbarSlot) {
+        Map<Integer, Ability> playerBindings = abilityBindings.get(player.getUniqueId());
+        if (playerBindings != null) {
+            playerBindings.remove(hotbarSlot);
+            if (playerBindings.isEmpty()) {
+                abilityBindings.remove(player.getUniqueId());
+            }
+        }
+    }
+
+    /**
+     * Gets the ability bound to a hotbar slot, if any.
+     */
+    public Optional<Ability> getBoundAbility(Player player, int hotbarSlot) {
+        Map<Integer, Ability> playerBindings = abilityBindings.get(player.getUniqueId());
+        if (playerBindings == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(playerBindings.get(hotbarSlot));
+    }
+
+    /**
+     * Gets all abilities bound by a player.
+     */
+    public Map<Integer, Ability> getBoundAbilities(Player player) {
+        return abilityBindings.getOrDefault(player.getUniqueId(), new HashMap<>());
+    }
+
+    /**
+     * Triggers a specific bound ability by hotbar slot.
+     */
+    public AbilityTriggerResult triggerBoundAbility(Player player, int hotbarSlot) {
+        Optional<Ability> bound = getBoundAbility(player, hotbarSlot);
+        if (bound.isEmpty()) {
+            return AbilityTriggerResult.noPower();
+        }
+
+        Ability ability = bound.get();
+        UUID playerId = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        long remaining = cooldownTracker.getRemainingMillis(playerId, ability.getId(), now);
+
+        if (remaining > 0) {
+            long remainingSeconds = Math.max(1L, (remaining + 999L) / 1000L);
+            return AbilityTriggerResult.cooldown(null, ability, (int) remainingSeconds);
+        }
+
+        ability.activate(player);
+        cooldownTracker.markUsed(playerId, ability.getId(), now, ability.getCooldownSeconds());
+        return AbilityTriggerResult.success(null, ability);
+    }
+
+    /**
      * Triggers an ability for a player. If they have multiple abilities,
      * this will trigger the first available ability that's off cooldown.
+     * (Legacy method - prefer triggerBoundAbility for hotbar-based triggering)
      */
     public AbilityTriggerResult triggerAbility(Player player) {
         Optional<PowerType> powerType = getPower(player.getUniqueId());
