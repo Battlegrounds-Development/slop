@@ -46,6 +46,24 @@ public enum PowerType {
                     new EffectSpec("JUMP_BOOST", 1),
                     new EffectSpec("SLOW_FALLING", 0)
             )
+    ),
+    COSMIC(
+            "Cosmic",
+            "Bend gravity, ignite starfields, and dominate movement with pure cosmic force.",
+            List.of(
+                    new NovaBurstAbility(),
+                    new EventHorizonAbility(),
+                    new HyperDashAbility(),
+                    new CometDiveAbility(),
+                    new StarfallAbility()
+            ),
+            List.of(
+                    new EffectSpec("SPEED", 2),
+                    new EffectSpec("STRENGTH", 1),
+                    new EffectSpec("RESISTANCE", 1),
+                    new EffectSpec("JUMP_BOOST", 2),
+                    new EffectSpec("FIRE_RESISTANCE", 0)
+            )
     );
 
     private final String displayName;
