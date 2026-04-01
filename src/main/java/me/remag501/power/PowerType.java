@@ -64,6 +64,26 @@ public enum PowerType {
                     new EffectSpec("JUMP_BOOST", 2),
                     new EffectSpec("FIRE_RESISTANCE", 0)
             )
+    ),
+    VILTRUMITE(
+            "Viltrumite",
+            "Overwhelming force, brutal flight control, and elite predator combat power.",
+            List.of(
+                    new ViltrumiteRushAbility(),
+                    new SupersonicFlightAbility(),
+                    new SeismicClapAbility(),
+                    new PredatorLockAbility(),
+                    new BloodFrenzyAbility()
+            ),
+            List.of(
+                    new EffectSpec("SPEED", 3),
+                    new EffectSpec("STRENGTH", 3),
+                    new EffectSpec("RESISTANCE", 2),
+                    new EffectSpec("JUMP_BOOST", 2),
+                    new EffectSpec("FIRE_RESISTANCE", 0),
+                    new EffectSpec("REGENERATION", 1),
+                    new EffectSpec("HASTE", 1)
+            )
     );
 
     private final String displayName;
@@ -113,4 +133,3 @@ public enum PowerType {
     public record EffectSpec(String effectType, int amplifier) {
     }
 }
-

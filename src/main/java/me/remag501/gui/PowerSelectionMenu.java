@@ -18,10 +18,11 @@ public class PowerSelectionMenu {
 
     private static final int INVENTORY_SIZE = 27;
     private static final String TITLE = ChatColor.DARK_AQUA + "Select Your Superpower";
-    private static final int SPEEDSTER_SLOT = 10;
-    private static final int TITAN_SLOT = 12;
-    private static final int SKYBOUND_SLOT = 14;
-    private static final int COSMIC_SLOT = 16;
+    private static final int SPEEDSTER_SLOT = 9;
+    private static final int TITAN_SLOT = 11;
+    private static final int SKYBOUND_SLOT = 13;
+    private static final int COSMIC_SLOT = 15;
+    private static final int VILTRUMITE_SLOT = 17;
     private static final int CLEAR_SLOT = 22;
 
     private final PowerManager powerManager;
@@ -38,6 +39,7 @@ public class PowerSelectionMenu {
         inventory.setItem(TITAN_SLOT, buildPowerItem(PowerType.TITAN, current));
         inventory.setItem(SKYBOUND_SLOT, buildPowerItem(PowerType.SKYBOUND, current));
         inventory.setItem(COSMIC_SLOT, buildPowerItem(PowerType.COSMIC, current));
+        inventory.setItem(VILTRUMITE_SLOT, buildPowerItem(PowerType.VILTRUMITE, current));
         inventory.setItem(CLEAR_SLOT, buildClearItem(current.isPresent()));
 
         player.openInventory(inventory);
@@ -53,6 +55,7 @@ public class PowerSelectionMenu {
             case TITAN_SLOT -> Optional.of(PowerType.TITAN);
             case SKYBOUND_SLOT -> Optional.of(PowerType.SKYBOUND);
             case COSMIC_SLOT -> Optional.of(PowerType.COSMIC);
+            case VILTRUMITE_SLOT -> Optional.of(PowerType.VILTRUMITE);
             default -> Optional.empty();
         };
     }
@@ -67,6 +70,7 @@ public class PowerSelectionMenu {
             case TITAN -> Material.IRON_SWORD;
             case SKYBOUND -> Material.FEATHER;
             case COSMIC -> Material.NETHER_STAR;
+            case VILTRUMITE -> Material.DRAGON_HEAD;
         };
 
         ItemStack item = new ItemStack(material);
@@ -119,4 +123,3 @@ public class PowerSelectionMenu {
         }
     }
 }
-
