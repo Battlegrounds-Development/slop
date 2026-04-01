@@ -69,6 +69,7 @@ public enum PowerType {
             "Viltrumite",
             "Overwhelming force, brutal flight control, and elite predator combat power.",
             List.of(
+                    new CityBreakerModeAbility(),
                     new ViltrumiteRushAbility(),
                     new SupersonicFlightAbility(),
                     new SeismicClapAbility(),

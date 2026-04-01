@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import me.remag501.power.ViltrumiteModeTracker;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -44,8 +45,12 @@ public class ViltrumiteRushAbility implements Ability {
     public void activate(Player player) {
         JavaPlugin plugin = JavaPlugin.getProvidingPlugin(getClass());
 
+        boolean cityBreaker = ViltrumiteModeTracker.isActive(player);
+        double rushSpeed = cityBreaker ? 3.2 : 2.6;
+        double impactDamage = cityBreaker ? 20.0 : 14.0;
+
         Vector lockedDirection = player.getLocation().getDirection().normalize();
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1.2f, 1.6f);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, cityBreaker ? 1.6f : 1.2f, cityBreaker ? 1.1f : 1.6f);
 
         new BukkitRunnable() {
             private int ticks = 0;
@@ -58,13 +63,13 @@ public class ViltrumiteRushAbility implements Ability {
                     return;
                 }
 
-                Vector v = lockedDirection.clone().multiply(2.6);
+                Vector v = lockedDirection.clone().multiply(rushSpeed);
                 v.setY(Math.max(0.15, v.getY()));
                 player.setVelocity(v);
                 player.setFallDistance(0.0F);
 
                 player.getWorld().spawnParticle(Particle.SONIC_BOOM, player.getLocation(), 1, 0.0, 0.0, 0.0, 0.0);
-                player.getWorld().spawnParticle(Particle.CRIT, player.getLocation(), 16, 0.3, 0.3, 0.3, 0.15);
+                player.getWorld().spawnParticle(Particle.CRIT, player.getLocation(), cityBreaker ? 24 : 16, 0.3, 0.3, 0.3, 0.15);
 
                 for (Entity nearby : player.getNearbyEntities(1.6, 1.6, 1.6)) {
                     if (!(nearby instanceof LivingEntity target) || nearby.equals(player)) {
@@ -73,9 +78,9 @@ public class ViltrumiteRushAbility implements Ability {
                     if (!hitEntities.add(nearby.getEntityId())) {
                         continue;
                     }
-                    target.damage(14.0, player);
-                    Vector knock = lockedDirection.clone().multiply(2.0);
-                    knock.setY(0.35);
+                    target.damage(impactDamage, player);
+                    Vector knock = lockedDirection.clone().multiply(cityBreaker ? 2.8 : 2.0);
+                    knock.setY(cityBreaker ? 0.55 : 0.35);
                     target.setVelocity(knock);
                 }
 

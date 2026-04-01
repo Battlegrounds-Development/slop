@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import me.remag501.power.ViltrumiteModeTracker;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -46,8 +47,12 @@ public class PredatorLockAbility implements Ability {
             return;
         }
 
+        boolean cityBreaker = ViltrumiteModeTracker.isActive(player);
+        double lockSpeed = cityBreaker ? 2.9 : 2.1;
+        double impactDamage = cityBreaker ? 24.0 : 16.0;
+
         JavaPlugin plugin = JavaPlugin.getProvidingPlugin(getClass());
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.8f);
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, cityBreaker ? 1.3f : 1.0f, cityBreaker ? 1.2f : 1.8f);
 
         new BukkitRunnable() {
             private int ticks;
@@ -61,9 +66,9 @@ public class PredatorLockAbility implements Ability {
 
                 Vector desired = target.getLocation().toVector().subtract(player.getLocation().toVector());
                 if (desired.lengthSquared() < 2.2) {
-                    target.damage(16.0, player);
-                    Vector recoil = player.getLocation().toVector().subtract(target.getLocation().toVector()).normalize().multiply(0.8);
-                    recoil.setY(0.22);
+                    target.damage(impactDamage, player);
+                    Vector recoil = player.getLocation().toVector().subtract(target.getLocation().toVector()).normalize().multiply(cityBreaker ? 1.3 : 0.8);
+                    recoil.setY(cityBreaker ? 0.4 : 0.22);
                     target.setVelocity(recoil);
                     player.getWorld().playSound(target.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.3f, 0.8f);
                     player.getWorld().spawnParticle(Particle.SONIC_BOOM, target.getLocation(), 1, 0.0, 0.0, 0.0, 0.0);
@@ -71,15 +76,14 @@ public class PredatorLockAbility implements Ability {
                     return;
                 }
 
-                Vector homing = desired.normalize().multiply(2.1);
+                Vector homing = desired.normalize().multiply(lockSpeed);
                 homing.setY(Math.max(0.08, homing.getY() * 0.7));
                 player.setVelocity(homing);
                 player.setFallDistance(0.0F);
-                player.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, player.getLocation(), 6, 0.2, 0.2, 0.2, 0.02);
+                player.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, player.getLocation(), cityBreaker ? 12 : 6, 0.2, 0.2, 0.2, 0.02);
 
                 ticks++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
 }
-

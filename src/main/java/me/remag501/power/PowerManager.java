@@ -64,6 +64,9 @@ public class PowerManager {
 
     public void setPower(Player player, PowerType powerType) {
         powersByPlayer.put(player.getUniqueId(), powerType);
+        if (powerType != PowerType.VILTRUMITE) {
+            ViltrumiteModeTracker.clear(player);
+        }
         applyPower(player, powerType);
         syncAbilityLoadout(player, powerType);
         save();
@@ -73,6 +76,7 @@ public class PowerManager {
         powersByPlayer.remove(player.getUniqueId());
         abilityBindings.remove(player.getUniqueId());
         cooldownTracker.clear(player.getUniqueId());
+        ViltrumiteModeTracker.clear(player);
         clearPowerEffects(player);
         clearAbilityItems(player);
         save();
@@ -84,8 +88,12 @@ public class PowerManager {
         if (powerType.isPresent()) {
             applyPower(player, powerType.get());
             syncAbilityLoadout(player, powerType.get());
+            if (powerType.get() != PowerType.VILTRUMITE) {
+                ViltrumiteModeTracker.clear(player);
+            }
         } else {
             abilityBindings.remove(player.getUniqueId());
+            ViltrumiteModeTracker.clear(player);
             clearAbilityItems(player);
         }
     }
@@ -164,7 +172,7 @@ public class PowerManager {
         }
 
         ability.activate(player);
-        cooldownTracker.markUsed(playerId, ability.getId(), now, ability.getCooldownSeconds());
+        cooldownTracker.markUsed(playerId, ability.getId(), now, getEffectiveCooldownSeconds(player, ability));
         return AbilityTriggerResult.success(null, ability);
     }
 
@@ -187,9 +195,8 @@ public class PowerManager {
         for (Ability ability : selected.getAbilities()) {
             long remaining = cooldownTracker.getRemainingMillis(playerId, ability.getId(), now);
             if (remaining <= 0) {
-                // Ability is off cooldown, activate it
                 ability.activate(player);
-                cooldownTracker.markUsed(playerId, ability.getId(), now, ability.getCooldownSeconds());
+                cooldownTracker.markUsed(playerId, ability.getId(), now, getEffectiveCooldownSeconds(player, ability));
                 return AbilityTriggerResult.success(selected, ability);
             }
         }
@@ -228,6 +235,13 @@ public class PowerManager {
      */
     public boolean hasBoundAbilities(Player player) {
         return !getBoundAbilities(player).isEmpty();
+    }
+
+    /**
+     * Returns true if this player currently has city-breaker mode active.
+     */
+    public boolean isCityBreakerActive(Player player) {
+        return ViltrumiteModeTracker.isActive(player);
     }
 
     private void applyPower(Player player, PowerType powerType) {
@@ -311,6 +325,21 @@ public class PowerManager {
         }
 
         return PotionEffectType.getByName(effectKey.toUpperCase(Locale.ROOT));
+    }
+
+    private int getEffectiveCooldownSeconds(Player player, Ability ability) {
+        int base = Math.max(1, ability.getCooldownSeconds());
+        Optional<PowerType> selected = getPower(player.getUniqueId());
+        if (selected.isEmpty() || selected.get() != PowerType.VILTRUMITE) {
+            return base;
+        }
+        if (!ViltrumiteModeTracker.isActive(player)) {
+            return base;
+        }
+        if ("city_breaker_mode".equals(ability.getId())) {
+            return base;
+        }
+        return Math.max(1, (int) Math.floor(base * 0.55));
     }
 
     public record AbilityTriggerResult(Status status, PowerType powerType, Ability ability, int remainingSeconds) {
