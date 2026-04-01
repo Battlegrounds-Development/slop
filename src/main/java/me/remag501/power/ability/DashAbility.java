@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -34,5 +35,9 @@ public class DashAbility implements Ability {
         dash.setY(Math.max(0.24, dash.getY()));
         player.setVelocity(dash);
     }
-}
 
+    @Override
+    public Material getItemMaterial() {
+        return Material.SUGAR;
+    }
+}

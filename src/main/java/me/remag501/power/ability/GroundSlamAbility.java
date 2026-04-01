@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -30,6 +31,11 @@ public class GroundSlamAbility implements Ability {
     }
 
     @Override
+    public Material getItemMaterial() {
+        return Material.MAGMA_CREAM;
+    }
+
+    @Override
     public void activate(Player player) {
         for (Entity nearby : player.getNearbyEntities(5.0, 3.0, 5.0)) {
             if (!(nearby instanceof LivingEntity target) || nearby.equals(player)) {
@@ -46,4 +52,3 @@ public class GroundSlamAbility implements Ability {
         }
     }
 }
-

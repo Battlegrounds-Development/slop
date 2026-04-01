@@ -1,9 +1,10 @@
 package me.remag501.power;
 
 import me.remag501.power.ability.Ability;
-import me.remag501.power.ability.AbilityBinding;
+import me.remag501.power.ability.AbilityItemBuilder;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -20,6 +21,8 @@ public class PowerManager {
 
     private static final String PLAYER_ROOT = "players";
     private static final int INFINITE_DURATION = Integer.MAX_VALUE;
+    private static final int HOTBAR_SIZE = 9;
+    private static final int HOTBAR_MODEL_BASE = 2000;
 
     private final JavaPlugin plugin;
     private final Map<UUID, PowerType> powersByPlayer = new HashMap<>();
@@ -62,6 +65,7 @@ public class PowerManager {
     public void setPower(Player player, PowerType powerType) {
         powersByPlayer.put(player.getUniqueId(), powerType);
         applyPower(player, powerType);
+        syncAbilityLoadout(player, powerType);
         save();
     }
 
@@ -70,13 +74,20 @@ public class PowerManager {
         abilityBindings.remove(player.getUniqueId());
         cooldownTracker.clear(player.getUniqueId());
         clearPowerEffects(player);
+        clearAbilityItems(player);
         save();
     }
 
     public void reapplyPower(Player player) {
         Optional<PowerType> powerType = getPower(player.getUniqueId());
         clearPowerEffects(player);
-        powerType.ifPresent(type -> applyPower(player, type));
+        if (powerType.isPresent()) {
+            applyPower(player, powerType.get());
+            syncAbilityLoadout(player, powerType.get());
+        } else {
+            abilityBindings.remove(player.getUniqueId());
+            clearAbilityItems(player);
+        }
     }
 
     public String listPowerKeys() {
@@ -130,7 +141,7 @@ public class PowerManager {
      * Gets all abilities bound by a player.
      */
     public Map<Integer, Ability> getBoundAbilities(Player player) {
-        return abilityBindings.getOrDefault(player.getUniqueId(), new HashMap<>());
+        return Map.copyOf(abilityBindings.getOrDefault(player.getUniqueId(), Map.of()));
     }
 
     /**
@@ -190,6 +201,35 @@ public class PowerManager {
         return AbilityTriggerResult.cooldown(selected, firstAbility, (int) remainingSeconds);
     }
 
+    /**
+     * Gets remaining cooldown seconds for an ability bound to a specific hotbar slot.
+     */
+    public int getRemainingCooldownSeconds(Player player, int hotbarSlot) {
+        Optional<Ability> bound = getBoundAbility(player, hotbarSlot);
+        if (bound.isEmpty()) {
+            return 0;
+        }
+        return getRemainingCooldownSeconds(player, bound.get());
+    }
+
+    /**
+     * Gets remaining cooldown seconds for an ability.
+     */
+    public int getRemainingCooldownSeconds(Player player, Ability ability) {
+        long remaining = cooldownTracker.getRemainingMillis(player.getUniqueId(), ability.getId(), System.currentTimeMillis());
+        if (remaining <= 0) {
+            return 0;
+        }
+        return (int) Math.max(1L, (remaining + 999L) / 1000L);
+    }
+
+    /**
+     * Returns true when the player has at least one bound ability.
+     */
+    public boolean hasBoundAbilities(Player player) {
+        return !getBoundAbilities(player).isEmpty();
+    }
+
     private void applyPower(Player player, PowerType powerType) {
         clearPowerEffects(player);
         for (PowerType.EffectSpec effect : powerType.getEffects()) {
@@ -211,6 +251,45 @@ public class PowerManager {
             }
         }
         managedEffectTypes.forEach(player::removePotionEffect);
+    }
+
+    private void syncAbilityLoadout(Player player, PowerType powerType) {
+        Map<Integer, Ability> slotBindings = new HashMap<>();
+        int slot = 0;
+        for (Ability ability : powerType.getAbilities()) {
+            if (slot >= HOTBAR_SIZE) {
+                break;
+            }
+            slotBindings.put(slot, ability);
+            player.getInventory().setItem(slot, AbilityItemBuilder.buildAbilityHotbarItem(ability, slot));
+            slot++;
+        }
+        abilityBindings.put(player.getUniqueId(), slotBindings);
+
+        // Remove stale plugin ability items from unused hotbar slots.
+        for (int i = slot; i < HOTBAR_SIZE; i++) {
+            ItemStack existing = player.getInventory().getItem(i);
+            if (isAbilityHotbarItem(existing)) {
+                player.getInventory().setItem(i, null);
+            }
+        }
+    }
+
+    private void clearAbilityItems(Player player) {
+        for (int i = 0; i < HOTBAR_SIZE; i++) {
+            ItemStack existing = player.getInventory().getItem(i);
+            if (isAbilityHotbarItem(existing)) {
+                player.getInventory().setItem(i, null);
+            }
+        }
+    }
+
+    private boolean isAbilityHotbarItem(ItemStack item) {
+        if (item == null || item.getItemMeta() == null || !item.getItemMeta().hasCustomModelData()) {
+            return false;
+        }
+        int model = item.getItemMeta().getCustomModelData();
+        return model >= HOTBAR_MODEL_BASE && model < HOTBAR_MODEL_BASE + HOTBAR_SIZE;
     }
 
     private PotionEffectType resolveEffectType(String effectKey) {

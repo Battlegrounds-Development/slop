@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -33,5 +34,9 @@ public class UpdraftAbility implements Ability {
     public void activate(Player player) {
         player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 4 * 20, 3, false, false));
     }
-}
 
+    @Override
+    public Material getItemMaterial() {
+        return Material.GHAST_TEAR;
+    }
+}

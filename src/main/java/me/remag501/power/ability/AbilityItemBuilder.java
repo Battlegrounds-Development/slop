@@ -1,7 +1,6 @@
 package me.remag501.power.ability;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -13,7 +12,7 @@ import java.util.List;
 public class AbilityItemBuilder {
 
     public static ItemStack buildAbilityItem(Ability ability, int hotbarSlot) {
-        ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
+        ItemStack item = new ItemStack(ability.getItemMaterial());
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             return item;
@@ -29,14 +28,13 @@ public class AbilityItemBuilder {
                 ChatColor.YELLOW + "Place in hotbar to bind"
         ));
 
-        // Add custom NBT tag to identify ability items
         meta.setCustomModelData(1000 + hotbarSlot);
         item.setItemMeta(meta);
         return item;
     }
 
     public static ItemStack buildAbilityHotbarItem(Ability ability, int hotbarSlot) {
-        ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
+        ItemStack item = new ItemStack(ability.getItemMaterial());
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             return item;
@@ -47,7 +45,7 @@ public class AbilityItemBuilder {
                 ChatColor.GRAY + ability.getDescription(),
                 ChatColor.AQUA + "Cooldown: " + ability.getCooldownSeconds() + "s",
                 "",
-                ChatColor.GREEN + "Right-click or use to activate"
+                ChatColor.GREEN + "Right-click to activate"
         ));
 
         meta.setCustomModelData(2000 + hotbarSlot);
@@ -55,4 +53,3 @@ public class AbilityItemBuilder {
         return item;
     }
 }
-

@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -33,5 +34,9 @@ public class SprintAbility implements Ability {
     public void activate(Player player) {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 5 * 20, 2, false, false));
     }
-}
 
+    @Override
+    public Material getItemMaterial() {
+        return Material.RABBIT_FOOT;
+    }
+}

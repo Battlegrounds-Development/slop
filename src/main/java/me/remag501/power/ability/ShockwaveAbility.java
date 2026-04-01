@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -31,6 +32,11 @@ public class ShockwaveAbility implements Ability {
     }
 
     @Override
+    public Material getItemMaterial() {
+        return Material.IRON_NUGGET;
+    }
+
+    @Override
     public void activate(Player player) {
         for (Entity nearby : player.getNearbyEntities(4.0, 2.0, 4.0)) {
             if (!(nearby instanceof LivingEntity target) || nearby.equals(player)) {
@@ -44,4 +50,3 @@ public class ShockwaveAbility implements Ability {
         }
     }
 }
-

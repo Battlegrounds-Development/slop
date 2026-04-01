@@ -2,7 +2,6 @@ package me.remag501.listener;
 
 import me.remag501.power.PowerManager;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,14 +31,14 @@ public class AbilityHotbarListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
 
-        // Check if the item is an ability item (custom model data indicates ability)
-        if (item.getType() != Material.AMETHYST_SHARD || item.getItemMeta() == null) {
+        // Identify hotbar ability items by custom model data range.
+        if (item.getItemMeta() == null || !item.getItemMeta().hasCustomModelData()) {
             return;
         }
 
         int customModelData = item.getItemMeta().getCustomModelData();
-        if (customModelData < 2000) {
-            return; // Not a hotbar ability item
+        if (customModelData < 2000 || customModelData > 2008) {
+            return;
         }
 
         int hotbarSlot = player.getInventory().getHeldItemSlot();
@@ -47,14 +46,15 @@ public class AbilityHotbarListener implements Listener {
 
         switch (result.status()) {
             case SUCCESS -> {
+                int cooldownTicks = Math.max(0, result.ability().getCooldownSeconds()) * 20;
+                player.setCooldown(item.getType(), cooldownTicks);
                 player.sendMessage(ChatColor.AQUA + result.ability().getDisplayName() + ChatColor.GREEN + " activated!");
                 event.setCancelled(true);
             }
             case COOLDOWN -> player.sendMessage(ChatColor.RED + "Cooldown: " + result.remainingSeconds() + "s");
             case NO_POWER -> {
-                // Silently ignore - no ability bound
+                // Silently ignore - no ability bound.
             }
         }
     }
 }
-

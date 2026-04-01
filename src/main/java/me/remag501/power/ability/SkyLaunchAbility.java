@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -29,6 +30,11 @@ public class SkyLaunchAbility implements Ability {
     }
 
     @Override
+    public Material getItemMaterial() {
+        return Material.FEATHER;
+    }
+
+    @Override
     public void activate(Player player) {
         Vector launch = player.getVelocity();
         launch.setY(1.05);
@@ -36,4 +42,3 @@ public class SkyLaunchAbility implements Ability {
         player.setFallDistance(0.0F);
     }
 }
-

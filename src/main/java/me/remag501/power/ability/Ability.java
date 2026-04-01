@@ -1,5 +1,6 @@
 package me.remag501.power.ability;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 /**
@@ -23,6 +24,11 @@ public interface Ability {
     String getDescription();
 
     /**
+     * Gets the inventory material used for this ability item.
+     */
+    Material getItemMaterial();
+
+    /**
      * Gets the cooldown in seconds for this ability.
      */
     int getCooldownSeconds();
@@ -32,4 +38,3 @@ public interface Ability {
      */
     void activate(Player player);
 }
-

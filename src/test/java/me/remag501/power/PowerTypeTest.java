@@ -1,8 +1,11 @@
 package me.remag501.power;
 
+import me.remag501.power.ability.Ability;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,5 +35,20 @@ class PowerTypeTest {
 	void exposesAbilityMetadata() {
 		assertEquals("Dash", PowerType.SPEEDSTER.getAbilities().get(0).getDisplayName());
 		assertEquals(8, PowerType.SPEEDSTER.getAbilities().get(0).getCooldownSeconds());
+	}
+
+	@Test
+	void usesUniqueItemMaterialForEachAbility() {
+		Set<org.bukkit.Material> materials = new HashSet<>();
+		int abilityCount = 0;
+
+		for (PowerType powerType : PowerType.values()) {
+			for (Ability ability : powerType.getAbilities()) {
+				abilityCount++;
+				materials.add(ability.getItemMaterial());
+			}
+		}
+
+		assertEquals(abilityCount, materials.size());
 	}
 }

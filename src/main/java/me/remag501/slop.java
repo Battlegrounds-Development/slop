@@ -2,14 +2,17 @@ package me.remag501;
 
 import me.remag501.command.PowerCommand;
 import me.remag501.gui.PowerSelectionMenu;
-import me.remag501.listener.PowerListener;
+import me.remag501.listener.AbilityCooldownSidebarTask;
 import me.remag501.listener.AbilityHotbarListener;
+import me.remag501.listener.PowerListener;
 import me.remag501.power.PowerManager;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class slop extends JavaPlugin {
 
     private PowerManager powerManager;
+    private BukkitTask abilitySidebarTask;
 
     @Override
     public void onEnable() {
@@ -28,11 +31,16 @@ public final class slop extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new PowerListener(this.powerManager, powerSelectionMenu), this);
         getServer().getPluginManager().registerEvents(new AbilityHotbarListener(this.powerManager), this);
+        this.abilitySidebarTask = new AbilityCooldownSidebarTask(this.powerManager).runTaskTimer(this, 0L, 20L);
         getLogger().info("slop enabled: superpowers are ready.");
     }
 
     @Override
     public void onDisable() {
+        if (this.abilitySidebarTask != null) {
+            this.abilitySidebarTask.cancel();
+            this.abilitySidebarTask = null;
+        }
         if (this.powerManager != null) {
             this.powerManager.save();
         }
