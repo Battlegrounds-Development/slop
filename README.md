@@ -29,11 +29,13 @@ A Paper plugin for Minecraft 1.21.8 where players can select a passive superpowe
 
 ## Build
 
+This project uses **Gradle**:
+
 ```bash
-mvn clean package
+./gradlew build
 ```
 
-Compiled jar will be generated under `target/`.
+Compiled jar will be generated under `build/libs/`.
 
 ## Server setup
 
@@ -45,4 +47,3 @@ Compiled jar will be generated under `target/`.
 
 - This plugin currently provides passive powers through potion effects.
 - You can extend `PowerType` to add more powers and effect combinations.
-
