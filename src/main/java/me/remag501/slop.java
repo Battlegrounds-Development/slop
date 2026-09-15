@@ -32,7 +32,7 @@ public final class slop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PowerListener(this.powerManager, powerSelectionMenu), this);
         getServer().getPluginManager().registerEvents(new AbilityHotbarListener(this.powerManager), this);
         this.abilitySidebarTask = new AbilityCooldownSidebarTask(this.powerManager).runTaskTimer(this, 0L, 20L);
-        getLogger().info("slop enabled: superpowers are ready. [Pipeline Test]");
+        getLogger().info("slop enabled: superpowers are ready. [Pipeline Non-Blocking Test Trigger]");
     }
 
     @Override
