@@ -1,6 +1,26 @@
 package me.remag501.power;
 
-import me.remag501.power.ability.*;
+import me.remag501.power.ability.Ability;
+import me.remag501.power.ability.BlinkAbility;
+import me.remag501.power.ability.BloodFrenzyAbility;
+import me.remag501.power.ability.CityBreakerModeAbility;
+import me.remag501.power.ability.CometDiveAbility;
+import me.remag501.power.ability.DashAbility;
+import me.remag501.power.ability.EventHorizonAbility;
+import me.remag501.power.ability.FortressAbility;
+import me.remag501.power.ability.GlideAbility;
+import me.remag501.power.ability.GroundSlamAbility;
+import me.remag501.power.ability.HyperDashAbility;
+import me.remag501.power.ability.NovaBurstAbility;
+import me.remag501.power.ability.PredatorLockAbility;
+import me.remag501.power.ability.SeismicClapAbility;
+import me.remag501.power.ability.ShockwaveAbility;
+import me.remag501.power.ability.SkyLaunchAbility;
+import me.remag501.power.ability.SprintAbility;
+import me.remag501.power.ability.StarfallAbility;
+import me.remag501.power.ability.SupersonicFlightAbility;
+import me.remag501.power.ability.UpdraftAbility;
+import me.remag501.power.ability.ViltrumiteRushAbility;
 
 import java.util.Arrays;
 import java.util.List;

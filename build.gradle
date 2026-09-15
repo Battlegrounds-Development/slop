@@ -2,6 +2,7 @@ plugins {
     id "java"
     id "maven-publish"
     id "jacoco"
+    id "checkstyle"
 }
 
 group = "me.remag501"
@@ -29,6 +30,12 @@ java {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.release.set(21)
+}
+
+checkstyle {
+    toolVersion = "10.12.5"
+    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    ignoreFailures = false
 }
 
 test {
