@@ -7,3 +7,4 @@ on:
 jobs:
   snapshot:
     uses: Battlegrounds-Development/build-logic/.github/workflows/merge-workflow.yml@main
+    secrets: inherit

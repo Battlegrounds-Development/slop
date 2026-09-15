@@ -8,3 +8,4 @@ on:
 jobs:
   release:
     uses: Battlegrounds-Development/build-logic/.github/workflows/production-release.yml@main
+    secrets: inherit

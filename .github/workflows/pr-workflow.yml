@@ -7,3 +7,4 @@ on:
 jobs:
   pr-workflow:
     uses: Battlegrounds-Development/build-logic/.github/workflows/pr-workflow.yml@main
+    secrets: inherit
