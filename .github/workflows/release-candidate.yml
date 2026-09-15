@@ -9,3 +9,4 @@ on:
 jobs:
   rc:
     uses: Battlegrounds-Development/build-logic/.github/workflows/release-candidate.yml@main
+    secrets: inherit
